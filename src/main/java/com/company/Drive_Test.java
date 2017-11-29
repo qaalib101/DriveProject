@@ -25,7 +25,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Collections;
 
-public class Drive {
     /*
  * Copyright (c) 2012 Google Inc.
  *
@@ -39,32 +38,6 @@ public class Drive {
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License. */
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.googleapis.media.MediaHttpDownloader;
-import com.google.api.client.googleapis.media.MediaHttpUploader;
-import com.google.api.client.http.FileContent;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.Preconditions;
-import com.google.api.client.util.store.DataStoreFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.DriveScopes;
-import com.google.api.services.drive.model.File;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.util.Collections;
-
     /**
      * A sample application that runs multiple requests against the Drive API. The requests this sample
      * makes are:
@@ -77,17 +50,16 @@ import java.util.Collections;
      * </ul>
      *
      * @author rmistry@google.com (Ravi Mistry)
-     */
-    public class DriveSample {
-
+//     *
         /**
          * Be sure to specify the name of your application. If the application name is {@code null} or
          * blank, the application will log a warning. Suggested format is "MyCompany-ProductName/1.0".
          */
-        private static final String APPLICATION_NAME = "";
+    public class Drive_Test{
+        private static final String APPLICATION_NAME = "Drive Project";
 
-        private static final String UPLOAD_FILE_PATH = "Enter File Path";
-        private static final String DIR_FOR_DOWNLOADS = "Enter Download Directory";
+        private static final String UPLOAD_FILE_PATH = "/Test";
+        private static final String DIR_FOR_DOWNLOADS = "/Downloads";
         private static final java.io.File UPLOAD_FILE = new java.io.File(UPLOAD_FILE_PATH);
 
         /** Directory to store user credentials. */
@@ -113,7 +85,7 @@ import java.util.Collections;
         private static Credential authorize() throws Exception {
             // load client secrets
             GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
-                    new InputStreamReader(DriveSample.class.getResourceAsStream("/client_secrets.json")));
+                    new InputStreamReader(Drive_Test.class.getResourceAsStream("/client_secrets.json")));
             if (clientSecrets.getDetails().getClientId().startsWith("Enter")
                     || clientSecrets.getDetails().getClientSecret().startsWith("Enter ")) {
                 System.out.println(
@@ -134,7 +106,7 @@ import java.util.Collections;
         public static void main(String[] args) {
             Preconditions.checkArgument(
                     !UPLOAD_FILE_PATH.startsWith("Enter ") && !DIR_FOR_DOWNLOADS.startsWith("Enter "),
-                    "Please enter the upload file path and download directory in %s", DriveSample.class);
+                    "Please enter the upload file path and download directory in %s", Drive_Test.class);
 
             try {
                 httpTransport = GoogleNetHttpTransport.newTrustedTransport();
@@ -212,5 +184,3 @@ import java.util.Collections;
             downloader.download(new GenericUrl(uploadedFile.getDownloadUrl()), out);
         }
     }
-
-}
