@@ -1,5 +1,6 @@
 package com.company;
 
+// Imported statements from google api drive
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -55,16 +56,16 @@ import java.util.Collections;
          * Be sure to specify the name of your application. If the application name is {@code null} or
          * blank, the application will log a warning. Suggested format is "MyCompany-ProductName/1.0".
          */
-    public class Drive_Test{
+    public class Drive{
         private static final String APPLICATION_NAME = "Drive Project";
 
-        private static final String UPLOAD_FILE_PATH = "/Test";
+        static final String UPLOAD_FILE_PATH = "hello.txt";
         private static final String DIR_FOR_DOWNLOADS = "/Downloads";
         private static final java.io.File UPLOAD_FILE = new java.io.File(UPLOAD_FILE_PATH);
 
         /** Directory to store user credentials. */
         private static final java.io.File DATA_STORE_DIR =
-                new java.io.File(System.getProperty("user.home"), ".store/drive_sample");
+                new java.io.File(System.getProperty("user.home"), "/Documents");
 
         /**
          * Global instance of the {@link DataStoreFactory}. The best practice is to make it a single
@@ -85,7 +86,7 @@ import java.util.Collections;
         private static Credential authorize() throws Exception {
             // load client secrets
             GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
-                    new InputStreamReader(Drive_Test.class.getResourceAsStream("/client_secrets.json")));
+                    new InputStreamReader(Drive.class.getResourceAsStream("/client_secrets.json")));
             if (clientSecrets.getDetails().getClientId().startsWith("Enter")
                     || clientSecrets.getDetails().getClientSecret().startsWith("Enter ")) {
                 System.out.println(
@@ -106,7 +107,7 @@ import java.util.Collections;
         public static void main(String[] args) {
             Preconditions.checkArgument(
                     !UPLOAD_FILE_PATH.startsWith("Enter ") && !DIR_FOR_DOWNLOADS.startsWith("Enter "),
-                    "Please enter the upload file path and download directory in %s", Drive_Test.class);
+                    "Please enter the upload file path and download directory in %s", Drive.class);
 
             try {
                 httpTransport = GoogleNetHttpTransport.newTrustedTransport();
