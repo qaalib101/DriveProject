@@ -7,6 +7,8 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.googleapis.media.MediaHttpDownloader;
 import com.google.api.client.googleapis.media.MediaHttpUploader;
 import com.google.api.client.http.FileContent;
@@ -57,11 +59,11 @@ import java.util.Collections;
          * blank, the application will log a warning. Suggested format is "MyCompany-ProductName/1.0".
          */
     public class Drive{
-        private static final String APPLICATION_NAME = "Drive Project";
+        public static final String APPLICATION_NAME = "Drive Project";
 
-        static final String UPLOAD_FILE_PATH = "hello.txt";
-        private static final String DIR_FOR_DOWNLOADS = "/Downloads";
-        private static final java.io.File UPLOAD_FILE = new java.io.File(UPLOAD_FILE_PATH);
+        public static final String UPLOAD_FILE_PATH = "hello.txt";
+        public static final String DIR_FOR_DOWNLOADS = "DriveProject/Downloads";
+        public static final java.io.File UPLOAD_FILE = new java.io.File(UPLOAD_FILE_PATH);
 
         /** Directory to store user credentials. */
         private static final java.io.File DATA_STORE_DIR =
@@ -91,7 +93,7 @@ import java.util.Collections;
                     || clientSecrets.getDetails().getClientSecret().startsWith("Enter ")) {
                 System.out.println(
                         "Enter Client ID and Secret from https://code.google.com/apis/console/?api=drive "
-                                + "into drive-cmdline-sample/src/main/resources/client_secrets.json");
+                                + "into drive-cmdline-sample/src/main/resources/client_secrets1.json");
                 System.exit(1);
             }
             // set up authorization code flow
@@ -100,7 +102,7 @@ import java.util.Collections;
                     Collections.singleton(DriveScopes.DRIVE_FILE)).setDataStoreFactory(dataStoreFactory)
                     .build();
             // authorize
-            return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
+            return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("qaalibomer@gmail.com");
         }
 
 
@@ -137,6 +139,9 @@ import java.util.Collections;
 
                 View.header1("Success!");
                 return;
+            }catch(GoogleJsonResponseException e){
+                GoogleJsonError error = e.getDetails();
+                System.out.println(error);
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             } catch (Throwable t) {
@@ -148,15 +153,15 @@ import java.util.Collections;
         /** Uploads a file using either resumable or direct media upload. */
         private static File uploadFile(boolean useDirectUpload) throws IOException {
             File fileMetadata = new File();
-            fileMetadata.setTitle(UPLOAD_FILE.getName());
+                fileMetadata.setTitle(UPLOAD_FILE.getName());
 
-            FileContent mediaContent = new FileContent("image/jpeg", UPLOAD_FILE);
+                FileContent mediaContent = new FileContent("text/plain", UPLOAD_FILE);
 
-            com.google.api.services.drive.Drive.Files.Insert insert = drive.files().insert(fileMetadata, mediaContent);
-            MediaHttpUploader uploader = insert.getMediaHttpUploader();
-            uploader.setDirectUploadEnabled(useDirectUpload);
-            uploader.setProgressListener(new FileUploadProgressListener());
-            return insert.execute();
+                com.google.api.services.drive.Drive.Files.Insert insert = drive.files().insert(fileMetadata, mediaContent);
+                MediaHttpUploader uploader = insert.getMediaHttpUploader();
+                uploader.setDirectUploadEnabled(useDirectUpload);
+                uploader.setProgressListener(new FileUploadProgressListener());
+                return insert.execute();
         }
 
         /** Updates the name of the uploaded file to have a "drivetest-" prefix. */
@@ -183,5 +188,6 @@ import java.util.Collections;
             downloader.setDirectDownloadEnabled(useDirectDownload);
             downloader.setProgressListener(new FileDownloadProgressListener());
             downloader.download(new GenericUrl(uploadedFile.getDownloadUrl()), out);
+            System.out.println("File printed out to " + parentDir.getAbsolutePath());
         }
     }
