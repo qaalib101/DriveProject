@@ -21,12 +21,18 @@ import com.google.api.client.util.store.DataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadState.MEDIA_COMPLETE;
 
     /*
  * Copyright (c) 2012 Google Inc.
@@ -61,13 +67,12 @@ import java.util.Collections;
     public class Drive{
         public static final String APPLICATION_NAME = "Drive Project";
 
-        public static final String UPLOAD_FILE_PATH = "hello.txt";
-        public static final String DIR_FOR_DOWNLOADS = "DriveProject/Downloads";
-        public static final java.io.File UPLOAD_FILE = new java.io.File(UPLOAD_FILE_PATH);
+
+        public static final String DIR_FOR_DOWNLOADS = "Downloads";
 
         /** Directory to store user credentials. */
         private static final java.io.File DATA_STORE_DIR =
-                new java.io.File(System.getProperty("user.home"), "/Documents");
+                new java.io.File("DriveProject");
 
         /**
          * Global instance of the {@link DataStoreFactory}. The best practice is to make it a single
@@ -84,6 +89,22 @@ import java.util.Collections;
         /** Global Drive API client. */
         private static com.google.api.services.drive.Drive drive;
 
+        private static com.google.api.services.drive.Drive.Files.List fileList;
+        Drive(){
+            try {
+                httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+                dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
+                // authorization
+                Credential credential = authorize();
+                // set up the global Drive instance
+                drive = new com.google.api.services.drive.Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(
+                        APPLICATION_NAME).build();
+            }catch(IOException ioe){
+                System.out.println(ioe);
+            }catch(Throwable t){
+                System.out.println(t);
+            }
+        }
         /** Authorizes the installed application to access user's protected data. */
         private static Credential authorize() throws Exception {
             // load client secrets
@@ -105,54 +126,13 @@ import java.util.Collections;
             return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("qaalibomer@gmail.com");
         }
 
-
-        public static void main(String[] args) {
-            Preconditions.checkArgument(
-                    !UPLOAD_FILE_PATH.startsWith("Enter ") && !DIR_FOR_DOWNLOADS.startsWith("Enter "),
-                    "Please enter the upload file path and download directory in %s", Drive.class);
-
-            try {
-                httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-                dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
-                // authorization
-                Credential credential = authorize();
-                // set up the global Drive instance
-                drive = new com.google.api.services.drive.Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(
-                        APPLICATION_NAME).build();
-
-                // run commands
-
-                View.header1("Starting Resumable Media Upload");
-                File uploadedFile = uploadFile(false);
-
-                View.header1("Updating Uploaded File Name");
-                File updatedFile = updateFileWithTestSuffix(uploadedFile.getId());
-
-                View.header1("Starting Resumable Media Download");
-                downloadFile(false, updatedFile);
-
-                View.header1("Starting Simple Media Upload");
-                uploadedFile = uploadFile(true);
-
-                View.header1("Starting Simple Media Download");
-                downloadFile(true, uploadedFile);
-
-                View.header1("Success!");
-                return;
-            }catch(GoogleJsonResponseException e){
-                GoogleJsonError error = e.getDetails();
-                System.out.println(error);
-            } catch (IOException e) {
-                System.err.println(e.getMessage());
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-            System.exit(1);
-        }
-
         /** Uploads a file using either resumable or direct media upload. */
-        private static File uploadFile(boolean useDirectUpload) throws IOException {
-            File fileMetadata = new File();
+        public static String uploadFile(boolean useDirectUpload, String filePath){
+            String result;
+            try{
+                File fileMetadata = new File();
+                java.io.File UPLOAD_FILE = new java.io.File(filePath);
+
                 fileMetadata.setTitle(UPLOAD_FILE.getName());
 
                 FileContent mediaContent = new FileContent("text/plain", UPLOAD_FILE);
@@ -161,33 +141,46 @@ import java.util.Collections;
                 MediaHttpUploader uploader = insert.getMediaHttpUploader();
                 uploader.setDirectUploadEnabled(useDirectUpload);
                 uploader.setProgressListener(new FileUploadProgressListener());
-                return insert.execute();
+                insert.execute();
+                if(uploader.getUploadState() == MEDIA_COMPLETE){
+                    result = "upload is complete";
+
+            }
+            catch(IOException ioe){
+                System.out.println(ioe);
+                return null;
+            }catch(Exception e){
+                System.out.println(e);
+                return null;
+            }
         }
 
         /** Updates the name of the uploaded file to have a "drivetest-" prefix. */
-        private static File updateFileWithTestSuffix(String id) throws IOException {
-            File fileMetadata = new File();
-            fileMetadata.setTitle("drivetest-" + UPLOAD_FILE.getName());
 
-            com.google.api.services.drive.Drive.Files.Update update = drive.files().update(id, fileMetadata);
-            return update.execute();
-        }
 
         /** Downloads a file using either resumable or direct media download. */
-        private static void downloadFile(boolean useDirectDownload, File uploadedFile)
-                throws IOException {
+        public static String downloadFile(boolean useDirectDownload, File uploadedFile){
             // create parent directory (if necessary)
-            java.io.File parentDir = new java.io.File(DIR_FOR_DOWNLOADS);
-            if (!parentDir.exists() && !parentDir.mkdirs()) {
-                throw new IOException("Unable to create parent directory");
-            }
-            OutputStream out = new FileOutputStream(new java.io.File(parentDir, uploadedFile.getTitle()));
+            try{
+                java.io.File parentDir = new java.io.File(DIR_FOR_DOWNLOADS);
+                if (!parentDir.exists() && !parentDir.mkdirs()) {
+                    throw new IOException("Unable to create parent directory");
+                }
+                OutputStream out = new FileOutputStream(new java.io.File(parentDir, uploadedFile.getTitle()));
 
-            MediaHttpDownloader downloader =
-                    new MediaHttpDownloader(httpTransport, drive.getRequestFactory().getInitializer());
-            downloader.setDirectDownloadEnabled(useDirectDownload);
-            downloader.setProgressListener(new FileDownloadProgressListener());
-            downloader.download(new GenericUrl(uploadedFile.getDownloadUrl()), out);
-            System.out.println("File printed out to " + parentDir.getAbsolutePath());
+                MediaHttpDownloader downloader =
+                        new MediaHttpDownloader(httpTransport, drive.getRequestFactory().getInitializer());
+                downloader.setDirectDownloadEnabled(useDirectDownload);
+                downloader.setProgressListener(new FileDownloadProgressListener());
+                downloader.download(new GenericUrl(uploadedFile.getDownloadUrl()), out);
+                return "File printed out to " + parentDir.getAbsolutePath();
+            }
+            catch(IOException ioe){
+                return ioe.getMessage();
+            }catch(Exception e){
+                return e.getMessage();
+            }
         }
-    }
+
+        }
+
