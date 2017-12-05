@@ -1,5 +1,6 @@
 package com.company;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,11 +17,14 @@ public class GUI extends JFrame{
     private JLabel uploadResultLabel;
     private JLabel downloadResultLabel;
     private JPanel mainPanel;
-    private JTable table1;
+    private JTable driveTable;
     private JButton whatsInYourDriveButton;
 
     private JFileChooser fc;
     private Drive drive;
+    private String filePath = "";
+    private File driveFile;
+    private DriveTableModel driveTableModel;
     GUI(){
         setContentPane(mainPanel);
         pack();
@@ -28,6 +32,12 @@ public class GUI extends JFrame{
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         drive = new Drive();
+        driveTableModel = new DriveTableModel(drive);
+
+        driveTable.setModel(driveTableModel);
+        driveTable.setRowSelectionAllowed(true);
+        driveTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
 
         chooseFileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -35,26 +45,45 @@ public class GUI extends JFrame{
                 fc.setCurrentDirectory(new File("/DriveProject"));
                 int returnVal = fc.showOpenDialog(null);
                 if(returnVal == fc.APPROVE_OPTION){
-                    String filePath = fc.getSelectedFile().getPath();
+                    filePath = fc.getSelectedFile().getPath();
                     filePathLabel.setText(filePath);
                 }
             }
         });
         uploadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                try{
-                    String filePath = filePathLabel.getText();
-                    String result = drive.uploadFile(false, filePath);
-                }catch(Exception e){
+                if(!filePathLabel.getText().equals("")){
+                    String mimetype = new MimetypesFileTypeMap().getContentType(filePath);
+                    String result = drive.uploadFile(false, filePath, mimetype);
+                    uploadResultLabel.setText(result);
+                }else{
                     JOptionPane.showMessageDialog(GUI.this, "Please choose a file to upload!");
                 }
             }
         });
         downloadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                try{
+                int index  = driveTable.getSelectedRow();
+                if(driveTable.getSelectedRow() != -1) {
+                    String fileName = (String)driveTableModel.getValueAt(index, 0);
+                    String result = drive.downloadFile(drive.getFile(fileName));
+                    downloadResultLabel.setText(result);
+                }else{
+                    JOptionPane.showMessageDialog(GUI.this, "Please choose a file to download!");
+                    }
+                }
+                catch (Exception exc){
+                    JOptionPane.showMessageDialog(GUI.this, "Check all fields to see tamper ment");
+                }
             }
         });
+        whatsInYourDriveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                driveTableModel.updateTable();
+            }
+        });
+
     }
 
 }

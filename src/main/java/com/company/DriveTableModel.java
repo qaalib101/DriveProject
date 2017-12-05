@@ -2,14 +2,28 @@ package com.company;
 
 import javax.swing.table.AbstractTableModel;
 
+import java.util.List;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
+
 public class DriveTableModel extends AbstractTableModel{
-    DriveTableModel(){
+    private Drive drive;
+    private List<com.google.api.services.drive.model.File> list;
+    DriveTableModel(Drive drive){
+        try{
+            this.drive = drive;
+            for(File f : drive.getAllFiles()){
+                list.add(f);
+            }
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+        }
 
     }
 
     @Override
     public int getRowCount() {
-        return 2;
+        return list.size();
     }
     @Override
     public int getColumnCount() {
@@ -18,7 +32,12 @@ public class DriveTableModel extends AbstractTableModel{
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        return "test";
+        if(columnIndex == 0){
+            String name= list.get(rowIndex).getTitle();
+            return name;
+        }else{
+            return null;
+        }
     }
     @Override
     public void setValueAt(Object value, int row, int column){
@@ -27,5 +46,12 @@ public class DriveTableModel extends AbstractTableModel{
     @Override
     public boolean isCellEditable(int row, int column){
         return false;
+    }
+
+    public void updateTable(){
+        while(list.size() > 0){
+            list.remove(0);
+        }
+        list.addAll(drive.getAllFiles());
     }
 }

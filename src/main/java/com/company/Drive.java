@@ -59,18 +59,20 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
      * </ul>
      *
      * @author rmistry@google.com (Ravi Mistry)
-//     *
-        /**
-         * Be sure to specify the name of your application. If the application name is {@code null} or
-         * blank, the application will log a warning. Suggested format is "MyCompany-ProductName/1.0".
-         */
+     * //     *
+     * /**
+     * Be sure to specify the name of your application. If the application name is {@code null} or
+     * blank, the application will log a warning. Suggested format is "MyCompany-ProductName/1.0".
+     */
     public class Drive{
         public static final String APPLICATION_NAME = "Drive Project";
 
 
-        public static final String DIR_FOR_DOWNLOADS = "Downloads";
+        public static final String DIR_FOR_DOWNLOADS = "/Downloads";
 
-        /** Directory to store user credentials. */
+        /**
+         * Directory to store user credentials.
+         */
         private static final java.io.File DATA_STORE_DIR =
                 new java.io.File("DriveProject");
 
@@ -80,17 +82,24 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
          */
         private static FileDataStoreFactory dataStoreFactory;
 
-        /** Global instance of the HTTP transport. */
+        /**
+         * Global instance of the HTTP transport.
+         */
         private static HttpTransport httpTransport;
 
-        /** Global instance of the JSON factory. */
+        /**
+         * Global instance of the JSON factory.
+         */
         private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-        /** Global Drive API client. */
-        private static com.google.api.services.drive.Drive drive;
+        /**
+         * Global Drive API client.
+         */
+        public static com.google.api.services.drive.Drive drive;
 
-        private static com.google.api.services.drive.Drive.Files.List fileList;
-        Drive(){
+        private static com.google.api.services.drive.Drive.Files.List request;
+
+        Drive() {
             try {
                 httpTransport = GoogleNetHttpTransport.newTrustedTransport();
                 dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
@@ -99,13 +108,16 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
                 // set up the global Drive instance
                 drive = new com.google.api.services.drive.Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(
                         APPLICATION_NAME).build();
-            }catch(IOException ioe){
+            } catch (IOException ioe) {
                 System.out.println(ioe);
-            }catch(Throwable t){
+            } catch (Throwable t) {
                 System.out.println(t);
             }
         }
-        /** Authorizes the installed application to access user's protected data. */
+
+        /**
+         * Authorizes the installed application to access user's protected data.
+         */
         private static Credential authorize() throws Exception {
             // load client secrets
             GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
@@ -126,30 +138,30 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("qaalibomer@gmail.com");
         }
 
-        /** Uploads a file using either resumable or direct media upload. */
-        public static String uploadFile(boolean useDirectUpload, String filePath){
+        /**
+         * Uploads a file using either resumable or direct media upload.
+         */
+        public static String uploadFile(boolean useDirectUpload, String filePath, String mimeType) {
             String result;
-            try{
+            try {
                 File fileMetadata = new File();
                 java.io.File UPLOAD_FILE = new java.io.File(filePath);
 
                 fileMetadata.setTitle(UPLOAD_FILE.getName());
 
-                FileContent mediaContent = new FileContent("text/plain", UPLOAD_FILE);
+                FileContent mediaContent = new FileContent(mimeType, UPLOAD_FILE);
 
                 com.google.api.services.drive.Drive.Files.Insert insert = drive.files().insert(fileMetadata, mediaContent);
                 MediaHttpUploader uploader = insert.getMediaHttpUploader();
                 uploader.setDirectUploadEnabled(useDirectUpload);
                 uploader.setProgressListener(new FileUploadProgressListener());
                 insert.execute();
-                if(uploader.getUploadState() == MEDIA_COMPLETE){
-                    result = "upload is complete";
-
-            }
-            catch(IOException ioe){
+                result = "upload is complete";
+                return result;
+            } catch (IOException ioe) {
                 System.out.println(ioe);
                 return null;
-            }catch(Exception e){
+            } catch (Exception e) {
                 System.out.println(e);
                 return null;
             }
@@ -158,29 +170,46 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
         /** Updates the name of the uploaded file to have a "drivetest-" prefix. */
 
 
-        /** Downloads a file using either resumable or direct media download. */
-        public static String downloadFile(boolean useDirectDownload, File uploadedFile){
+        /**
+         * Downloads a file using either resumable or direct media download.
+         */
+        public static String downloadFile( File uploadedFile) {
             // create parent directory (if necessary)
-            try{
+            try {
                 java.io.File parentDir = new java.io.File(DIR_FOR_DOWNLOADS);
-                if (!parentDir.exists() && !parentDir.mkdirs()) {
-                    throw new IOException("Unable to create parent directory");
-                }
+
                 OutputStream out = new FileOutputStream(new java.io.File(parentDir, uploadedFile.getTitle()));
 
                 MediaHttpDownloader downloader =
                         new MediaHttpDownloader(httpTransport, drive.getRequestFactory().getInitializer());
-                downloader.setDirectDownloadEnabled(useDirectDownload);
+
                 downloader.setProgressListener(new FileDownloadProgressListener());
                 downloader.download(new GenericUrl(uploadedFile.getDownloadUrl()), out);
                 return "File printed out to " + parentDir.getAbsolutePath();
-            }
-            catch(IOException ioe){
+            } catch (IOException ioe) {
+                System.out.println(ioe.getMessage());
                 return ioe.getMessage();
-            }catch(Exception e){
+            } catch (Exception e) {
                 return e.getMessage();
             }
         }
 
+        public List<File> getAllFiles() {
+            List<File> result = new ArrayList<File>();
+            try {
+                request = drive.files().list();
+                FileList files = request.execute();
+                result.addAll(files.getItems());
+                request.setPageToken(files.getNextPageToken());
+            } catch (IOException ioe) {
+                System.out.println("An error occurred: " + ioe);
+                request.setPageToken(null);
+            }
+            return result;
         }
-
+        public File getFile(String name){
+            File file = new File();
+            file.setTitle(name);
+            return file;
+        }
+    }
