@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Created by si8822fb on 11/28/2017.
@@ -17,14 +18,14 @@ public class GUI extends JFrame{
     private JLabel uploadResultLabel;
     private JLabel downloadResultLabel;
     private JPanel mainPanel;
-    private JTable driveTable;
     private JButton whatsInYourDriveButton;
+    private JList driveList;
 
     private JFileChooser fc;
     private Drive drive;
     private String filePath = "";
     private File driveFile;
-    private DriveTableModel driveTableModel;
+    private DefaultListModel driveListModel;
     GUI(){
         setContentPane(mainPanel);
         pack();
@@ -32,11 +33,10 @@ public class GUI extends JFrame{
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         drive = new Drive();
-        driveTableModel = new DriveTableModel(drive);
-
-        driveTable.setModel(driveTableModel);
-        driveTable.setRowSelectionAllowed(true);
-        driveTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        driveListModel = new DefaultListModel<>();
+        driveList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        driveList.setModel(driveListModel);
+        updateList();
 
 
         chooseFileButton.addActionListener(new ActionListener() {
@@ -55,7 +55,13 @@ public class GUI extends JFrame{
                 if(!filePathLabel.getText().equals("")){
                     String mimetype = new MimetypesFileTypeMap().getContentType(filePath);
                     String result = drive.uploadFile(false, filePath, mimetype);
-                    uploadResultLabel.setText(result);
+                    if(result != null){
+                        uploadResultLabel.setText(result);
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(GUI.this, "There was a problem that occured");
+                    }
+                    updateList();
                 }else{
                     JOptionPane.showMessageDialog(GUI.this, "Please choose a file to upload!");
                 }
@@ -64,14 +70,15 @@ public class GUI extends JFrame{
         downloadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try{
-                int index  = driveTable.getSelectedRow();
-                if(driveTable.getSelectedRow() != -1) {
-                    String fileName = (String)driveTableModel.getValueAt(index, 0);
+                int index  = driveList.getSelectedIndex();
+                if(index > -1) {
+                    String fileName = (String)driveListModel.get(index);
                     String result = drive.downloadFile(drive.getFile(fileName));
                     downloadResultLabel.setText(result);
                 }else{
                     JOptionPane.showMessageDialog(GUI.this, "Please choose a file to download!");
                     }
+                    driveList.clearSelection();
                 }
                 catch (Exception exc){
                     JOptionPane.showMessageDialog(GUI.this, "Check all fields to see tamper ment");
@@ -80,10 +87,16 @@ public class GUI extends JFrame{
         });
         whatsInYourDriveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                driveTableModel.updateTable();
+                updateList();
             }
         });
-
     }
-
+    public void updateList(){
+        ArrayList<com.google.api.services.drive.model.File> list = new ArrayList<>();
+        list.addAll(drive.getAllFiles());
+        driveListModel.removeAllElements();
+        for(com.google.api.services.drive.model.File file : list){
+            driveListModel.addElement(file);
+        }
+    }
 }
