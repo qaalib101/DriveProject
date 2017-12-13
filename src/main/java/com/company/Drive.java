@@ -68,7 +68,7 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
         public static final String APPLICATION_NAME = "Drive Project";
 
 
-        public static final String DIR_FOR_DOWNLOADS = "/Downloads";
+        private static java.io.File DIR_FOR_DOWNLOADS = null;
 
         /**
          * Directory to store user credentials.
@@ -154,7 +154,6 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
                 com.google.api.services.drive.Drive.Files.Insert insert = drive.files().insert(fileMetadata, mediaContent);
                 MediaHttpUploader uploader = insert.getMediaHttpUploader();
                 uploader.setDirectUploadEnabled(useDirectUpload);
-                uploader.setProgressListener(new FileUploadProgressListener());
                 insert.execute();
                 result = "upload is complete";
                 return result;
@@ -167,7 +166,7 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             }
         }
 
-        /** Updates the name of the uploaded file to have a "drivetest-" prefix. */
+
 
 
         /**
@@ -176,14 +175,14 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
         public static String downloadFile( File uploadedFile) {
             // create parent directory (if necessary)
             try {
-                java.io.File parentDir = new java.io.File(DIR_FOR_DOWNLOADS);
+                java.io.File parentDir = DIR_FOR_DOWNLOADS;
 
                 OutputStream out = new FileOutputStream(new java.io.File(parentDir, uploadedFile.getTitle()));
 
                 MediaHttpDownloader downloader =
                         new MediaHttpDownloader(httpTransport, drive.getRequestFactory().getInitializer());
 
-                downloader.setProgressListener(new FileDownloadProgressListener());
+
                 downloader.download(new GenericUrl(uploadedFile.getDownloadUrl()), out);
                 return "File printed out to " + parentDir.getAbsolutePath();
             } catch (IOException ioe) {
@@ -207,9 +206,10 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             }
             return result;
         }
-        public File getFile(String name){
-            File file = new File();
-            file.setTitle(name);
-            return file;
+        public java.io.File getDataStoreDir(){
+            return DATA_STORE_DIR;
+        }
+        public void setDirForDownloads(java.io.File dir){
+            DIR_FOR_DOWNLOADS = dir;
         }
     }
