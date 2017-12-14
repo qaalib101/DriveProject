@@ -45,11 +45,13 @@ public class GUI extends JFrame{
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("Drive Desktop");
 
-
+        // creating all the objects needed in the gui
         drive = new Drive();
+
         driveListModel = new DefaultListModel<>();
         driveList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         driveList.setModel(driveListModel);
+
         driveTableModel = new DriveTableModel();
         driveTable.setModel(driveTableModel);
         driveTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -57,9 +59,15 @@ public class GUI extends JFrame{
 
         chooseFileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+
+                // creating a new jfile chooser object
+
                 fc = new JFileChooser();
                 fc.setCurrentDirectory(drive.getDataStoreDir());
                 int returnVal = fc.showOpenDialog(null);
+
+                // returns a postitive integer if a file is selected
+
                 if(returnVal == fc.APPROVE_OPTION){
                     filePath = fc.getSelectedFile().getPath();
                     String fileName = fc.getSelectedFile().getName();
@@ -71,8 +79,11 @@ public class GUI extends JFrame{
         uploadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(!filePathLabel.getText().equals("")){
+                    // using a instance MimeTypesFileTypeMap to get the mime type of the file
                     String mimetype = new MimetypesFileTypeMap().getContentType(filePath);
                     String result = drive.uploadFile(false, filePath, mimetype);
+
+                    // if the result is not null
                     if(result != null){
                         uploadResultLabel.setText(result);
                         filePathLabel.setText("");
@@ -80,6 +91,7 @@ public class GUI extends JFrame{
                         String date = formatter.format(new Date());
                         String filename = fc.getSelectedFile().getName();
                         double size = fc.getSelectedFile().length();
+                        // adding new values into the drive table and database
                         driveTableModel.insertValues(filename, size, date, "UPLOAD");
                     }
                     else{
@@ -95,6 +107,8 @@ public class GUI extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 try{
                 int index  = driveList.getSelectedIndex();
+                // checking to see if a list item is selected
+
                 if(index > -1) {
                     String fileName = (String)driveListModel.get(index);
                     com.google.api.services.drive.model.File downloadFile = driveMap.get(fileName);
@@ -103,6 +117,7 @@ public class GUI extends JFrame{
                     String filename = downloadFile.getTitle();
                     String date = formatter.format(new Date());
                     double size = downloadFile.getFileSize();
+                    // inserting new values
                     driveTableModel.insertValues(filename, size , date, "DOWNLOAD");
                 }else{
                     JOptionPane.showMessageDialog(GUI.this, "Please choose a file to download!");
@@ -119,6 +134,8 @@ public class GUI extends JFrame{
                 updateList();
             }
         });
+
+        // choosing a directory for downloads
         chooseDirectoryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

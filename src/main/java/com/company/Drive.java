@@ -47,28 +47,13 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License. */
 
-    /**
-     * A sample application that runs multiple requests against the Drive API. The requests this sample
-     * makes are:
-     * <ul>
-     * <li>Does a resumable media upload</li>
-     * <li>Updates the uploaded file by renaming it</li>
-     * <li>Does a resumable media download</li>
-     * <li>Does a direct media upload</li>
-     * <li>Does a direct media download</li>
-     * </ul>
-     *
-     * @author rmistry@google.com (Ravi Mistry)
-     * //     *
-     * /**
-     * Be sure to specify the name of your application. If the application name is {@code null} or
-     * blank, the application will log a warning. Suggested format is "MyCompany-ProductName/1.0".
-     */
+
     public class Drive{
         public static final String APPLICATION_NAME = "Drive Project";
 
+        // by default downloads go to a folder in your root directory
 
-        private static java.io.File DIR_FOR_DOWNLOADS = null;
+        private static java.io.File DIR_FOR_DOWNLOADS = new java.io.File("/Downloads");
 
         /**
          * Directory to store user credentials.
@@ -97,6 +82,7 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
          */
         public static com.google.api.services.drive.Drive drive;
 
+        // Drive list object created
         private static com.google.api.services.drive.Drive.Files.List request;
 
         Drive() {
@@ -122,13 +108,6 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             // load client secrets
             GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
                     new InputStreamReader(Drive.class.getResourceAsStream("/client_secrets.json")));
-            if (clientSecrets.getDetails().getClientId().startsWith("Enter")
-                    || clientSecrets.getDetails().getClientSecret().startsWith("Enter ")) {
-                System.out.println(
-                        "Enter Client ID and Secret from https://code.google.com/apis/console/?api=drive "
-                                + "into drive-cmdline-sample/src/main/resources/client_secrets1.json");
-                System.exit(1);
-            }
             // set up authorization code flow
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                     httpTransport, JSON_FACTORY, clientSecrets,
@@ -155,7 +134,7 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
                 MediaHttpUploader uploader = insert.getMediaHttpUploader();
                 uploader.setDirectUploadEnabled(useDirectUpload);
                 insert.execute();
-                result = "upload is complete";
+                result = "UPLOAD IS COMPLETE";
                 return result;
             } catch (IOException ioe) {
                 System.out.println(ioe);
@@ -165,8 +144,6 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
                 return null;
             }
         }
-
-
 
 
         /**
@@ -179,11 +156,12 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
 
                 OutputStream out = new FileOutputStream(new java.io.File(parentDir, uploadedFile.getTitle()));
 
+                // creating a media http downloader
+
                 MediaHttpDownloader downloader =
                         new MediaHttpDownloader(httpTransport, drive.getRequestFactory().getInitializer());
-
-
                 downloader.download(new GenericUrl(uploadedFile.getDownloadUrl()), out);
+
                 return "File printed out to " + parentDir.getAbsolutePath();
             } catch (IOException ioe) {
                 System.out.println(ioe.getMessage());
@@ -193,7 +171,12 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             }
         }
 
+        // getting all the files
+
         public List<File> getAllFiles() {
+
+            // list of drive files
+
             List<File> result = new ArrayList<File>();
             try {
                 request = drive.files().list();
@@ -206,9 +189,12 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             }
             return result;
         }
+
         public java.io.File getDataStoreDir(){
             return DATA_STORE_DIR;
         }
+
+
         public void setDirForDownloads(java.io.File dir){
             DIR_FOR_DOWNLOADS = dir;
         }

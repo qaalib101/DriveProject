@@ -3,15 +3,21 @@ package com.company;
 /**
  * Created by si8822fb on 11/28/2017.
  */
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Database {
+    // using sqlite
     static String db_url = "jdbc:sqlite:driver_gui.db";
+
+    // get all the data string
     private static String getData = "SELECT * FROM changes LIMIT 5";
     private static Connection conn;
     private static ResultSet rs;
+
+    // creating table if there is not a table present
     Database(){
         try{
             Class.forName("org.sqlite.JDBC");
@@ -20,6 +26,8 @@ public class Database {
             e.printStackTrace();
         }
     }
+
+    // used to create table
     public void createTable(){
         try{
             conn = DriverManager.getConnection(db_url);
@@ -32,15 +40,18 @@ public class Database {
             sqle.printStackTrace();
         }
     }
+    // getting all the data and string it in a hash map
     public HashMap<Integer,ArrayList<String>> getAllData(){
-        HashMap<Integer, ArrayList<String>> map = new HashMap<Integer, ArrayList<String>>();
 
+        HashMap<Integer, ArrayList<String>> map = new HashMap<Integer, ArrayList<String>>();
         try{
             conn = DriverManager.getConnection(db_url);
             Statement st = conn.createStatement();
             rs = st.executeQuery(getData);
             int accumulator = 0;
             while(rs.next()){
+
+                // storing the information in a Arraylist
                 ArrayList<String> list = new ArrayList<String>();
                 list.add(rs.getString(1));
                 list.add(Double.toString(rs.getDouble(2)));
@@ -57,6 +68,8 @@ public class Database {
         }
         return map;
     }
+    // used to insert the new values into the database
+
     public void insertValues(String fileName, double fileSize, String date, String action){
         try{
             String sqlQuery = "INSERT INTO changes (file_name, file_size, action_date, action_type) VALUES(?, ?, ?, ?)";
