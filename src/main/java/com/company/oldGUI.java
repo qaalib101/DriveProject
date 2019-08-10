@@ -1,5 +1,6 @@
 package com.company;
 
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
@@ -14,19 +15,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.io.IOException;
 
-public class GUI extends JFrame{
-    private JPanel mainPanel;
-    private JButton chooseFileButton;
-    private JButton uploadButton;
-    private JButton chooseDirectoryButton;
-    private JList driveList;
-    private JTable driveTable;
-    private JButton whatsInYourDriveButton;
-    private JButton recentActivityButton;
-    private JLabel uploadResultLabel;
-    private JButton downloadButton;
-    private JLabel downloadResultLabel;
-    private JLabel filePathLabel;
+/**
+ * Created by si8822fb on 11/28/2017.
+ */
+/*
+public class oldGUI extends JFrame{
+
 
     private JFileChooser fc;
     private Drive drive;
@@ -38,16 +32,16 @@ public class GUI extends JFrame{
     private DefaultListModel driveListModel;
     private HashMap<String, com.google.api.services.drive.model.File> driveMap;
 
-    public GUI(){
+    public oldGUI(){
+        mainPanel = new JPanel();
         setContentPane(mainPanel);
-        mainPanel.setSize(mainPanel.getPreferredSize());
+        pack();
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("Drive Desktop");
 
         // creating all the objects needed in the gui
         drive = new Drive();
-
 
         driveListModel = new DefaultListModel<>();
         driveList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -56,7 +50,7 @@ public class GUI extends JFrame{
         driveTableModel = new DriveTableModel();
         driveTable.setModel(driveTableModel);
         driveTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-
+        pack();
 
         chooseFileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -84,12 +78,12 @@ public class GUI extends JFrame{
                     Path path = Paths.get(filePath);
                     String result = null;
                     try{
-                        String mimetype = Files.probeContentType(path);
-                        result = drive.uploadFile(false, filePath, mimetype);
+                       String mimetype = Files.probeContentType(path);
+                       result = drive.uploadFile(false, filePath, mimetype); 
                     }
                     catch(IOException error){
                         System.out.println(error);
-                    }
+                    } 
                     // if the result is not null
                     if(result != null || result!=""){
                         uploadResultLabel.setText(result);
@@ -97,42 +91,42 @@ public class GUI extends JFrame{
                         filePath = "";
                         String date = formatter.format(new Date());
                         String filename = fc.getSelectedFile().getName();
-                        long size = fc.getSelectedFile().length();
+                        double size = fc.getSelectedFile().length();
                         // adding new values into the drive table and database
                         driveTableModel.insertValues(filename, size, date, "UPLOAD");
                     }
                     else{
-                        showMessage("There was a problem that occured");
+                        JOptionPane.showMessageDialog(oldGUI.this, "There was a problem that occured");
                     }
                     updateList();
                 }else{
-                    showMessage("Please choose a file to upload!");
+                    JOptionPane.showMessageDialog(oldGUI.this, "Please choose a file to upload!");
                 }
             }
         });
         downloadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try{
-                    int index  = driveList.getSelectedIndex();
-                    // checking to see if a list item is selected
+                int index  = driveList.getSelectedIndex();
+                // checking to see if a list item is selected
 
-                    if(index > -1) {
-                        String fileName = (String)driveListModel.get(index);
-                        com.google.api.services.drive.model.File downloadFile = driveMap.get(fileName);
-                        String downloadPath = drive.downloadFile(downloadFile);
-                        downloadResultLabel.setText(downloadPath);
-                        String filename = downloadFile.getName();
-                        String date = formatter.format(new Date());
-                        long size = downloadFile.getSize();
-                        // inserting new values
-                        driveTableModel.insertValues(filename, size , date, "DOWNLOAD");
-                    }else{
-                        showMessage("Please choose a file to download!");
+                if(index > -1) {
+                    String fileName = (String)driveListModel.get(index);
+                    com.google.api.services.drive.model.File downloadFile = driveMap.get(fileName);
+                    String downloadPath = drive.downloadFile(downloadFile);
+                    downloadResultLabel.setText(downloadPath);
+                    String filename = downloadFile.getTitle();
+                    String date = formatter.format(new Date());
+                    double size = downloadFile.getFileSize();
+                    // inserting new values
+                    driveTableModel.insertValues(filename, size , date, "DOWNLOAD");
+                }else{
+                    JOptionPane.showMessageDialog(oldGUI.this, "Please choose a file to download!");
                     }
                     driveList.clearSelection();
                 }
                 catch (Exception exc){
-                    showMessage("Check all fields to see tamper ment");
+                    JOptionPane.showMessageDialog(oldGUI.this, "Check all fields to see tamper ment");
                 }
             }
         });
@@ -163,27 +157,18 @@ public class GUI extends JFrame{
             }
         });
     }
-
     public void updateList(){
-        try{
-            ArrayList<com.google.api.services.drive.model.File> list = new ArrayList<>();
-
-            list.addAll(drive.getAllFiles());
-            driveListModel.removeAllElements();
-            driveMap = new HashMap<>();
-            for(com.google.api.services.drive.model.File file : list){
-                if(!file.getExplicitlyTrashed()){
-                    driveListModel.addElement(file.getName());
-                    driveMap.put(file.getName(), file);
-                }
-
+        ArrayList<com.google.api.services.drive.model.File> list = new ArrayList<>();
+        list.addAll(drive.getAllFiles());
+        driveListModel.removeAllElements();
+        driveMap = new HashMap<>();
+        for(com.google.api.services.drive.model.File file : list){
+            if(!file.getExplicitlyTrashed()){
+                driveListModel.addElement(file.getTitle());
+                driveMap.put(file.getTitle(), file);
             }
+
         }
-        catch(NullPointerException noe){
-            showMessage("A null pointer exception happened");
-        }
-    }
-    public void showMessage(String message){
-        JOptionPane.showMessageDialog(GUI.this, message);
     }
 }
+*/

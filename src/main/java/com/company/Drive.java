@@ -1,6 +1,7 @@
 package com.company;
 
 // Imported statements from google api drive
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -72,7 +73,7 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
         public static com.google.api.services.drive.Drive drive;
 
         // Drive list object created
-        private static com.google.api.services.drive.Drive.Files.List request;
+        public static com.google.api.services.drive.Drive.Files.List request;
 
         Drive() {
             try {
@@ -83,6 +84,9 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
                 // set up the global Drive instance
                 drive = new com.google.api.services.drive.Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(
                         APPLICATION_NAME).build();
+                // set up the files global instance
+
+
             } catch (IOException ioe) {
                 System.out.println(ioe);
             } catch (Throwable t) {
@@ -115,14 +119,13 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
                 File fileMetadata = new File();
                 java.io.File UPLOAD_FILE = new java.io.File(filePath);
 
-                fileMetadata.setTitle(UPLOAD_FILE.getName());
+                fileMetadata.setName(UPLOAD_FILE.getName());
 
                 FileContent mediaContent = new FileContent(mimeType, UPLOAD_FILE);
 
-                com.google.api.services.drive.Drive.Files.Insert insert = drive.files().insert(fileMetadata, mediaContent);
-                MediaHttpUploader uploader = insert.getMediaHttpUploader();
-                uploader.setDirectUploadEnabled(useDirectUpload);
-                insert.execute();
+                File file = drive.files().create(fileMetadata, mediaContent)
+                        .setFields("id")
+                        .execute();
                 result = "UPLOAD IS COMPLETE";
                 return result;
             } catch (IOException ioe) {
@@ -143,19 +146,19 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             try {
                 java.io.File parentDir = DIR_FOR_DOWNLOADS;
 
-                OutputStream out = new FileOutputStream(new java.io.File(parentDir, uploadedFile.getTitle()));
+                OutputStream out = new FileOutputStream(new java.io.File(parentDir, uploadedFile.getName()));
 
                 // creating a media http downloader
-
-                MediaHttpDownloader downloader =
-                        new MediaHttpDownloader(httpTransport, drive.getRequestFactory().getInitializer());
-                downloader.download(new GenericUrl(uploadedFile.getDownloadUrl()), out);
+                String fileId = uploadedFile.getId();
+                drive.files().get(fileId)
+                        .executeMediaAndDownloadTo(out);
 
                 return "File printed out to " + parentDir.getAbsolutePath();
             } catch (IOException ioe) {
-                System.out.println(ioe.getMessage());
+                ioe.printStackTrace();
                 return ioe.getMessage();
             } catch (Exception e) {
+                e.printStackTrace();
                 return e.getMessage();
             }
         }
@@ -168,13 +171,15 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
 
             List<File> result = new ArrayList<File>();
             try {
-                request = drive.files().list();
-                FileList files = request.execute();
-                result.addAll(files.getItems());
+
+                FileList files = drive.files().list().execute();
+                result.addAll(files.getFiles());
                 request.setPageToken(files.getNextPageToken());
             } catch (IOException ioe) {
-                System.out.println("An error occurred: " + ioe);
+                ioe.printStackTrace();
                 request.setPageToken(null);
+            } catch (Exception e){
+                e.printStackTrace();
             }
             return result;
         }

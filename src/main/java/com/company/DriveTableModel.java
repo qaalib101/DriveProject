@@ -41,7 +41,7 @@ public class DriveTableModel extends AbstractTableModel{
         }
     }
     // calling the insert values method
-    public void insertValues(String filename, double fileSize, String date, String action){
+    public void insertValues(String filename, long fileSize, String date, String action){
         db.insertValues(filename, fileSize, date, action);
         driveMap = db.getAllData();
     }
