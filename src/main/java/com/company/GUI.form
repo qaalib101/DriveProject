@@ -73,13 +73,6 @@
           <text value="Download a file"/>
         </properties>
       </component>
-      <vspacer id="aad5b">
-        <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="2" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="9" height="36"/>
-          </grid>
-        </constraints>
-      </vspacer>
       <component id="2c523" class="javax.swing.JButton" binding="uploadButton">
         <constraints>
           <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
@@ -118,6 +111,14 @@
         </constraints>
         <properties>
           <text value=""/>
+        </properties>
+      </component>
+      <component id="c07d5" class="javax.swing.JButton" binding="connectToYourDriveButton" default-binding="true">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Connect to your Drive"/>
         </properties>
       </component>
     </children>

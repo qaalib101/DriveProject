@@ -75,28 +75,32 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
         // Drive list object created
         public static com.google.api.services.drive.Drive.Files.List request;
 
+        private static boolean connected = false;
+
         Drive() {
             try {
                 httpTransport = GoogleNetHttpTransport.newTrustedTransport();
                 dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
-                // authorization
-                Credential credential = authorize();
-                // set up the global Drive instance
-                drive = new com.google.api.services.drive.Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(
-                        APPLICATION_NAME).build();
-                // set up the files global instance
-
-
             } catch (IOException ioe) {
-                System.out.println(ioe);
+                ioe.printStackTrace();
             } catch (Throwable t) {
-                System.out.println(t);
+                t.printStackTrace();
             }
         }
 
         /**
          * Authorizes the installed application to access user's protected data.
          */
+        public static void connectToDrive(){
+            try{
+                Credential credential = authorize();
+                drive = new com.google.api.services.drive.Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(
+                        APPLICATION_NAME).build();
+                connected = true;
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
         private static Credential authorize() throws Exception {
             // load client secrets
             GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
@@ -104,8 +108,8 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             // set up authorization code flow
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                     httpTransport, JSON_FACTORY, clientSecrets,
-                    Collections.singleton(DriveScopes.DRIVE_FILE)).setDataStoreFactory(dataStoreFactory)
-                    .build();
+                    Collections.singleton(DriveScopes.DRIVE_FILE)).setAccessType("offline").setDataStoreFactory(dataStoreFactory)
+                    .setApprovalPrompt("force").build();
             // authorize
             return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("qaalibomer@gmail.com");
         }
@@ -171,8 +175,8 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
 
             List<File> result = new ArrayList<File>();
             try {
-
-                FileList files = drive.files().list().execute();
+                request = drive.files().list();
+                FileList files = request.execute();
                 result.addAll(files.getFiles());
                 request.setPageToken(files.getNextPageToken());
             } catch (IOException ioe) {
@@ -191,5 +195,9 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
 
         public void setDirForDownloads(java.io.File dir){
             DIR_FOR_DOWNLOADS = dir;
+        }
+
+        public boolean getConnectedStatus(){
+            return connected;
         }
     }

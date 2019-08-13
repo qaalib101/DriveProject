@@ -27,6 +27,7 @@ public class GUI extends JFrame{
     private JButton downloadButton;
     private JLabel downloadResultLabel;
     private JLabel filePathLabel;
+    private JButton connectToYourDriveButton;
 
     private JFileChooser fc;
     private Drive drive;
@@ -79,34 +80,36 @@ public class GUI extends JFrame{
         });
         uploadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(!filePathLabel.getText().equals("")){
-                    // using a instance MimeTypesFileTypeMap to get the mime type of the file
-                    Path path = Paths.get(filePath);
-                    String result = null;
-                    try{
-                        String mimetype = Files.probeContentType(path);
-                        result = drive.uploadFile(false, filePath, mimetype);
+                if (drive.getConnectedStatus()) {
+                    if (!filePathLabel.getText().equals("")) {
+                        // using a instance MimeTypesFileTypeMap to get the mime type of the file
+                        Path path = Paths.get(filePath);
+                        String result = null;
+                        try {
+                            String mimetype = Files.probeContentType(path);
+                            result = drive.uploadFile(false, filePath, mimetype);
+                        } catch (IOException error) {
+                            System.out.println(error);
+                        }
+                        // if the result is not null
+                        if (result != null || result != "") {
+                            uploadResultLabel.setText(result);
+                            filePathLabel.setText("");
+                            filePath = "";
+                            String date = formatter.format(new Date());
+                            String filename = fc.getSelectedFile().getName();
+                            long size = fc.getSelectedFile().length();
+                            // adding new values into the drive table and database
+                            driveTableModel.insertValues(filename, size, date, "UPLOAD");
+                        } else {
+                            showMessage("There was a problem that occured");
+                        }
+                        updateList();
+                    } else {
+                        showMessage("Please choose a file to upload!");
                     }
-                    catch(IOException error){
-                        System.out.println(error);
-                    }
-                    // if the result is not null
-                    if(result != null || result!=""){
-                        uploadResultLabel.setText(result);
-                        filePathLabel.setText("");
-                        filePath = "";
-                        String date = formatter.format(new Date());
-                        String filename = fc.getSelectedFile().getName();
-                        long size = fc.getSelectedFile().length();
-                        // adding new values into the drive table and database
-                        driveTableModel.insertValues(filename, size, date, "UPLOAD");
-                    }
-                    else{
-                        showMessage("There was a problem that occured");
-                    }
-                    updateList();
-                }else{
-                    showMessage("Please choose a file to upload!");
+                } else {
+                showMessage("Click the connect button to connect to your drive to upload a file. ");
                 }
             }
         });
@@ -138,7 +141,13 @@ public class GUI extends JFrame{
         });
         whatsInYourDriveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                updateList();
+                if(drive.getConnectedStatus()){
+                    updateList();
+                }
+                else{
+                    showMessage("Connect to your drive to see what's in it");
+                }
+
             }
         });
 
@@ -160,6 +169,12 @@ public class GUI extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 driveTableModel.updateTable();
                 pack();
+            }
+        });
+        connectToYourDriveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drive.connectToDrive();
             }
         });
     }
