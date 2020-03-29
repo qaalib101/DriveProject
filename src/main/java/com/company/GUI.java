@@ -1,5 +1,6 @@
 package com.company;
 
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
@@ -40,6 +41,13 @@ public class GUI extends JFrame{
     private HashMap<String, com.google.api.services.drive.model.File> driveMap;
 
     public GUI(){
+        try{
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        }
+        catch(Exception e){
+            System.out.println("Exception thrown UIManager: " + e.toString());
+        }
+
         setContentPane(mainPanel);
         mainPanel.setSize(mainPanel.getPreferredSize());
         setVisible(true);
