@@ -50,9 +50,11 @@ public class GUI extends JFrame{
 
         setContentPane(mainPanel);
         mainPanel.setSize(mainPanel.getPreferredSize());
+        this.setLocationRelativeTo(null);
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("Drive Desktop");
+        this.pack();
 
         // creating all the objects needed in the gui
         drive = new Drive();

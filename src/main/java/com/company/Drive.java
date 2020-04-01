@@ -39,7 +39,7 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
 
 
     public class Drive{
-        public static final String APPLICATION_NAME = "Drive Project";
+        public static final String APPLICATION_NAME = "DriveDesktop";
 
         // by default downloads go to a folder in your root directory
 
@@ -108,7 +108,7 @@ import static com.google.api.client.googleapis.media.MediaHttpUploader.UploadSta
             // set up authorization code flow
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                     httpTransport, JSON_FACTORY, clientSecrets,
-                    Collections.singleton(DriveScopes.DRIVE_FILE)).setAccessType("offline").setDataStoreFactory(dataStoreFactory)
+                    Collections.singleton(DriveScopes.DRIVE)).setAccessType("offline").setDataStoreFactory(dataStoreFactory)
                     .setApprovalPrompt("force").build();
             // authorize
             return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("qaalibomer@gmail.com");
